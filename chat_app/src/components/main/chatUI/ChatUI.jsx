@@ -1,6 +1,7 @@
 import ChatTextBox from "./ChatTextBox"
 const ChatUI=()=>{
-    let array=["","","","","",""]
+    let array=["","","","","",""];
+    let chatMessages=[{type:"Sender",Text:"Hi brother"},{type:"Reciever",Text:"Hello"}];
     return(
         <div className="flex h-screen w-screen">
             {/* Chats Display */}
@@ -34,11 +35,25 @@ const ChatUI=()=>{
                 </div>
                 <div className="flex flex-col w-full h-[92%] border-b p-2 bg-blue-100">
                    
-                   <div className="flex border-2 border-blue-700 h-[90%] w-full">
+                   <div className="flex flex-col h-[90%] w-full">
+                    
+                    {chatMessages.map((message,index)=>{
+                        return(
+                        <>
+                            {message.type==="Sender"?
+                            <div className="flex h-[60px] w-full">
+                                <div className="flex h-max w-[40%] rounded-lg bg-slate-300 p-2"><p>{message.Text}</p></div>
+                            </div>
+                        :<div className="flex justify-end h-[60px] w-full">
+                        <div className="flex h-max w-[40%] rounded-lg bg-blue-400 p-2"><p>{message.Text}</p></div>
+                            </div>}
+                        </>
+                        )
+                    })}
                         
                    </div>
-                   <div className="flex items-center h-[10%] w-full border-2 border-purple-700">
-                        <p className="text-4xl">+</p> 
+                   <div className="flex items-center h-[10%] w-full bg-blue-200">
+                        <p className="text-4xl cursor-pointer">+</p> 
                         <ChatTextBox/>
                    </div>
                 </div>
