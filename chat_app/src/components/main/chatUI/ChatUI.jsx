@@ -1,3 +1,4 @@
+import ChatTextBox from "./ChatTextBox"
 const ChatUI=()=>{
     let array=["","","","","",""]
     return(
@@ -31,8 +32,15 @@ const ChatUI=()=>{
                     <div className="flex h-10 w-10 rounded-full border-2 border-black"></div>
                     <p className="text-xl ml-8">User Name</p>
                 </div>
-                <div className="flex w-full h-[92%] border-b items-center p-2 bg-blue-100">
+                <div className="flex flex-col w-full h-[92%] border-b p-2 bg-blue-100">
                    
+                   <div className="flex border-2 border-blue-700 h-[90%] w-full">
+                        
+                   </div>
+                   <div className="flex items-center h-[10%] w-full border-2 border-purple-700">
+                        <p className="text-4xl">+</p> 
+                        <ChatTextBox/>
+                   </div>
                 </div>
             </div>
         </div>
