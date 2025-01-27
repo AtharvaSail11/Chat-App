@@ -2,8 +2,10 @@ import {useState,useEffect} from "react"
 import { auth,db } from "../../../firebaseConfig/firebase"
 import { createUserWithEmailAndPassword } from "firebase/auth"
 import { collection,addDoc } from "firebase/firestore"
+import { useNavigate } from "react-router-dom"
 
 const SignIn=()=>{
+    const navigate=useNavigate();
     const [signInData,setSignInData]=useState({
         email:"",
         fullName:"",
@@ -23,10 +25,10 @@ const SignIn=()=>{
             const userCredentials=await createUserWithEmailAndPassword(auth,signInData.email,signInData.password);
             const user=userCredentials.user;
             const collectionRef=collection(db,"Users");
-            const data={uid:user.uid,email:signInData.email,fullName:signInData.fullName};
+            const data={uid:user.uid,email:signInData.email,fullName:signInData.fullName,createdAt:new Date()};
             const addedDoc=await addDoc(collectionRef,data);
+            navigate("/ChatUI");
             console.log("added doc",addedDoc);
-            
         }catch(error){
             console.log(error);
         }

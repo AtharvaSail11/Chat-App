@@ -2,8 +2,10 @@ import {useState,useEffect} from "react"
 import { auth,db } from "../../../firebaseConfig/firebase"
 import { signInWithEmailAndPassword } from "firebase/auth"
 import { collection,addDoc } from "firebase/firestore"
+import { useNavigate } from "react-router-dom"
 
 const LogIn=()=>{
+    const navigate=useNavigate();
     const [signInData,setSignInData]=useState({
         email:"",
         password:"",
@@ -19,6 +21,9 @@ const LogIn=()=>{
         try{
             const userCredentials=await signInWithEmailAndPassword(auth,signInData.email,signInData.password);
             const user=userCredentials.user;
+            if(user){
+                navigate("/ChatUI")
+            }
             console.log("signed in user:",user.email);
         }catch(error){
             console.log(error);
@@ -52,7 +57,7 @@ const LogIn=()=>{
                     required
                 />
 
-                <p className="text-[12px]">Do you have an account? If not, <span className="text-blue-700"><a href="#">Sign In here</a></span></p>
+                <p className="text-[12px]">Do you have an account? If not, <span className="text-blue-700"><a href="/SignUp">Sign In here</a></span></p>
 
                 <button className="w-1/2 h-[30px] bg-blue-500 rounded-md">Submit</button>
             </form>
