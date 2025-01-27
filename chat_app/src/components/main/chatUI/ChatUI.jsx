@@ -1,18 +1,34 @@
 import ChatTextBox from "./ChatTextBox"
 import { useState,useEffect } from "react";
-import { auth } from "../../../firebaseConfig/firebase";
+import { auth,db } from "../../../firebaseConfig/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
+import { collection,getDocs,query,where } from "firebase/firestore";
+import AddNewChat from "./AddNewChat";
+
 const ChatUI=()=>{
     const navigate=useNavigate();
     const [Uid,setUid]=useState()
+    const [newChatBoxAppear,SetNewChatBoxAppear]=useState(false);
+    const [userInfo,setUserInfo]=useState();
     let array=["","","","","",""];
     let myUid="ae012c5";
     let chatMessages=[{createdAt:"1/2/2025 2:25",messageBy:"ae012c5",userName:"Abc",message:"Hello"},{createdAt:"1/2/2025 2:26",messageBy:"b2cm68o",userName:"Def",message:"Hi"},{createdAt:"1/2/2025 2:25",messageBy:"ae012c5",userName:"Abc",message:"How are You!"},{createdAt:"1/2/2025 2:26",messageBy:"b2cm68o",userName:"Def",message:"I am fine"}];
     useEffect(()=>{
-        const unsubscribe=onAuthStateChanged(auth,(user)=>{
+        const unsubscribe=onAuthStateChanged(auth,async(user)=>{
             if(user){
-                setUid(user.uid)
+                try{
+                    const userCollectionRef=collection(db,"Users");
+                    const q=query(userCollectionRef,where("uid","==",user.uid));
+                    const snapShot=await getDocs(q);
+                    if(!snapShot.empty){
+                        setUserInfo(snapShot.docs[0].data());
+                        setUid(user.uid)
+                    }
+                }catch(error){
+                    console.log(error)
+                }
+                
             }else{
                 console.log("User auth does not exist")
             }
@@ -20,7 +36,7 @@ const ChatUI=()=>{
         return ()=>unsubscribe();
     },[])
 
-    useEffect(()=>{console.log("Uid:",Uid)},[Uid])
+    useEffect(()=>{console.log("User Info:",userInfo)},[userInfo])
 
     const handleLogOut=async()=>{
         try{
@@ -37,17 +53,22 @@ const ChatUI=()=>{
                 {/* Header */}
                 <div className="flex h-[10%] w-full justify-between p-2 items-center bg-blue-400">
                    <p className="text-3xl">Chats</p>
-                   <div className="flex h-10 w-10 rounded-full border-2 border-black cursor-pointer" onClick={handleLogOut}>
-                        <p>LogOut</p>
+
+                   <div className="flex p-2">
+                   <p className="text-3xl mr-4 cursor-pointer" onClick={()=>SetNewChatBoxAppear(true)}>+</p>
+                   <div className="flex justify-center items-center h-10 w-10 rounded-full border-2 border-black cursor-pointer" onClick={handleLogOut}>
+                        <p className="text-sm">{"[<-"}</p>
                    </div>
+                   </div>
+                   
                 </div>
                 {/* Display the chats here */}
-                <div className="flex flex-col h-[90%] w-full bg-slate-300">
+                {newChatBoxAppear?<AddNewChat SetNewChatBoxAppear={SetNewChatBoxAppear} userInfo={userInfo}/>:<div className="flex flex-col h-[90%] w-full bg-slate-300">
                 {/* Chats */}
                 {array.map((item,index)=>{
                     return(<div className="flex w-full h-16 border-b items-center p-2 border-gray-700 cursor-pointer hover:bg-slate-400" key={index}>
                         <div className="flex h-14 w-14 rounded-full border-2 border-black"></div>
-                        <div className="flex flex-col border-2 ml-8">
+                        <div className="flex flex-col ml-8">
                             <p className="text-xl">User Name</p>
                             <p className="text-base">Message</p>
                         </div>
@@ -56,7 +77,8 @@ const ChatUI=()=>{
                 })}
                 
 
-                </div>
+                </div>}
+                
             </div>
             {/* Chatting section */}
             <div className="flex flex-col h-full w-[65%]">
