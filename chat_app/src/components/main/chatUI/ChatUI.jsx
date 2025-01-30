@@ -11,11 +11,11 @@ const ChatUI=()=>{
     const [Uid,setUid]=useState();
     const [userChats,setUserChats]=useState([]);
     const [newChatBoxAppear,SetNewChatBoxAppear]=useState(false);
+    const [selectedDocId,setSelectedDocId]=useState();
     const [currentMessages,setCurrentMessages]=useState([])
     const [userInfo,setUserInfo]=useState([]);
     let array=["","","","","",""];
     let myUid="ae012c5";
-    let chatMessages=[{createdAt:"1/2/2025 2:25",messageBy:"ae012c5",userName:"Abc",message:"Hello"},{createdAt:"1/2/2025 2:26",messageBy:"b2cm68o",userName:"Def",message:"Hi"},{createdAt:"1/2/2025 2:25",messageBy:"ae012c5",userName:"Abc",message:"How are You!"},{createdAt:"1/2/2025 2:26",messageBy:"b2cm68o",userName:"Def",message:"I am fine"}];
     useEffect(()=>{
         const unsubscribe=onAuthStateChanged(auth,async(user)=>{
             if(user){
@@ -59,7 +59,7 @@ const ChatUI=()=>{
     const handleDocSelection=(index)=>{
         const userDoc=userChats[index];
         const docId=userDoc.id;
-        console.log("selectedDocId:",docId)
+        setSelectedDocId(docId);
         const chatCollectionRef=collection(db,`userChats/${docId}/chats`);
         const unsubscribe=onSnapshot(chatCollectionRef,(chatSnapshot)=>{
             console.log("current Message Uid:",(chatSnapshot.docs[0].data()).uid)
@@ -122,14 +122,14 @@ const ChatUI=()=>{
                 </div>
                 <div className="flex flex-col w-full h-[92%] border-b p-2 bg-blue-100">
                    
-                   <div className="flex flex-col h-[90%] w-full">
+                   <div className="flex flex-col h-[90%] w-full overflow-y-scroll">
                     
-                    {currentMessages.map((userMessage,index)=>{
+                    {currentMessages.sort((a,b)=>a.data().messageCreatedAt-b.data().messageCreatedAt).map((userMessage,index)=>{
                         return(
                         <>
-                            {(userMessage.data()).uid===Uid?<div className="flex justify-end h-[60px] w-full">
+                            {(userMessage.data()).uid===Uid?<div className="flex justify-end h-[60px] w-full mb-5">
                         <div className="flex h-max w-[40%] rounded-lg bg-blue-400 p-2"><p>{(userMessage.data()).message}</p></div>
-                            </div>:<div className="flex h-[60px] w-full border-2 border-black">
+                            </div>:<div className="flex h-[60px] w-full mb-5">
                                 <div className="flex h-max w-[40%] rounded-lg bg-slate-300 p-2"><p>{(userMessage.data()).message}</p></div>
                             </div>}
                         </>
@@ -139,7 +139,7 @@ const ChatUI=()=>{
                    </div>
                    <div className="flex items-center h-[10%] w-full bg-blue-200">
                         <p className="text-4xl cursor-pointer">+</p> 
-                        <ChatTextBox/>
+                        <ChatTextBox selectedDocId={selectedDocId} userInfo={userInfo}/>
                    </div>
                 </div>
             </div>

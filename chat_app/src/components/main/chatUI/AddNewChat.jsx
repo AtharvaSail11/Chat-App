@@ -17,9 +17,6 @@ const AddNewChat = ({userInfo,SetNewChatBoxAppear}) => {
         getUserData();
     },[])
     
-    useEffect(()=>{
-        console.log("New user data:",UserData);
-    },[UserData])
 
     const addChat=async(User)=>{
         const data={
@@ -32,9 +29,9 @@ const AddNewChat = ({userInfo,SetNewChatBoxAppear}) => {
         const collectionRef=collection(db,"userChats");
         const addedDoc=await addDoc(collectionRef,data);
         console.log(addedDoc.id);
-        const partnerCollectionRef=collection(db,`userChats/${addedDoc.id}/chats`);
+        const chatCollectionRef=collection(db,`userChats/${addedDoc.id}/chats`);
         const messageData={uid:userInfo.uid,name:userInfo.fullName,message:"Hi",messageCreatedAt:new Date()}
-        await addDoc(partnerCollectionRef,messageData);
+        await addDoc(chatCollectionRef,messageData);
         await updateDoc(addedDoc,{lastMessageTime:new Date()})
     }catch(error){
         console.log(error.message);
