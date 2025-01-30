@@ -33,7 +33,7 @@ const AddNewChat = ({userInfo,SetNewChatBoxAppear}) => {
         const addedDoc=await addDoc(collectionRef,data);
         console.log(addedDoc.id);
         const partnerCollectionRef=collection(db,`userChats/${addedDoc.id}/chats`);
-        const messageData={uid:userInfo.uid,name:userInfo.fullame,message:"Hi",messageCreatedAt:new Date()}
+        const messageData={uid:userInfo.uid,name:userInfo.fullName,message:"Hi",messageCreatedAt:new Date()}
         await addDoc(partnerCollectionRef,messageData);
         await updateDoc(addedDoc,{lastMessageTime:new Date()})
     }catch(error){

@@ -11,6 +11,7 @@ const ChatUI=()=>{
     const [Uid,setUid]=useState();
     const [userChats,setUserChats]=useState([]);
     const [newChatBoxAppear,SetNewChatBoxAppear]=useState(false);
+    const [currentMessages,setCurrentMessages]=useState([])
     const [userInfo,setUserInfo]=useState([]);
     let array=["","","","","",""];
     let myUid="ae012c5";
@@ -55,6 +56,19 @@ const ChatUI=()=>{
         return unsubscribe;
     }
 
+    const handleDocSelection=(index)=>{
+        const userDoc=userChats[index];
+        const docId=userDoc.id;
+        console.log("selectedDocId:",docId)
+        const chatCollectionRef=collection(db,`userChats/${docId}/chats`);
+        const unsubscribe=onSnapshot(chatCollectionRef,(chatSnapshot)=>{
+            console.log("current Message Uid:",(chatSnapshot.docs[0].data()).uid)
+            console.log("My Uid:",myUid)
+            setCurrentMessages(chatSnapshot.docs);
+        })
+
+        return unsubscribe;
+    }
 
     const handleLogOut=async()=>{
         try{
@@ -64,6 +78,7 @@ const ChatUI=()=>{
             console.log(error.message)
         }
     }
+
     return(
         <div className="flex h-screen w-screen">
             {/* Chats Display */}
@@ -84,7 +99,7 @@ const ChatUI=()=>{
                 {newChatBoxAppear?<AddNewChat SetNewChatBoxAppear={SetNewChatBoxAppear} userInfo={userInfo}/>:<div className="flex flex-col h-[90%] w-full bg-slate-300">
                 {/* Chats */}
                 {userChats.map((item,index)=>{
-                    return(<div className="flex w-full h-16 border-b items-center p-2 border-gray-700 cursor-pointer hover:bg-slate-400" key={index}>
+                    return(<div className="flex w-full h-16 border-b items-center p-2 border-gray-700 cursor-pointer hover:bg-slate-400" key={index} onClick={()=>{handleDocSelection(index)}}>
                         <div className="flex h-14 w-14 rounded-full border-2 border-black"></div>
                         <div className="flex flex-col ml-8">
                             <p className="text-xl">{item.data().UserIds[0]===Uid?item.data().user2:item.data().user1}</p>
@@ -109,13 +124,13 @@ const ChatUI=()=>{
                    
                    <div className="flex flex-col h-[90%] w-full">
                     
-                    {chatMessages.map((message,index)=>{
+                    {currentMessages.map((userMessage,index)=>{
                         return(
                         <>
-                            {message.messageBy===myUid?<div className="flex justify-end h-[60px] w-full">
-                        <div className="flex h-max w-[40%] rounded-lg bg-blue-400 p-2"><p>{message.message}</p></div>
-                            </div>:<div className="flex h-[60px] w-full">
-                                <div className="flex h-max w-[40%] rounded-lg bg-slate-300 p-2"><p>{message.message}</p></div>
+                            {(userMessage.data()).uid===Uid?<div className="flex justify-end h-[60px] w-full">
+                        <div className="flex h-max w-[40%] rounded-lg bg-blue-400 p-2"><p>{(userMessage.data()).message}</p></div>
+                            </div>:<div className="flex h-[60px] w-full border-2 border-black">
+                                <div className="flex h-max w-[40%] rounded-lg bg-slate-300 p-2"><p>{(userMessage.data()).message}</p></div>
                             </div>}
                         </>
                         )
