@@ -5,17 +5,22 @@ import { onAuthStateChanged, signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { collection,getDocs,onSnapshot,query,where } from "firebase/firestore";
 import AddNewChat from "./AddNewChat";
+import fileUploadIcon from "./assets/upload_icon.png";
+import threeDots from "./assets/Three_Dots_Icon.png"
 
 const ChatUI=()=>{
     const navigate=useNavigate();
     const [Uid,setUid]=useState();
     const [userChats,setUserChats]=useState([]);
     const [newChatBoxAppear,SetNewChatBoxAppear]=useState(false);
+    const [displayChatUI,setDisplayChatUI]=useState(false);
     const [selectedDocId,setSelectedDocId]=useState();
-    const [currentMessages,setCurrentMessages]=useState([])
+    const [currentMessages,setCurrentMessages]=useState([]);
+    const [displaySettingBox,setDisplaySettingBox]=useState(false);
     const [userInfo,setUserInfo]=useState([]);
-    let array=["","","","","",""];
-    let myUid="ae012c5";
+
+
+
     useEffect(()=>{
         const unsubscribe=onAuthStateChanged(auth,async(user)=>{
             if(user){
@@ -57,13 +62,13 @@ const ChatUI=()=>{
     }
 
     const handleDocSelection=(index)=>{
+        setDisplayChatUI(true);
         const userDoc=userChats[index];
         const docId=userDoc.id;
         setSelectedDocId(docId);
         const chatCollectionRef=collection(db,`userChats/${docId}/chats`);
         const unsubscribe=onSnapshot(chatCollectionRef,(chatSnapshot)=>{
             console.log("current Message Uid:",(chatSnapshot.docs[0].data()).uid)
-            console.log("My Uid:",myUid)
             setCurrentMessages(chatSnapshot.docs);
         })
 
@@ -80,7 +85,7 @@ const ChatUI=()=>{
     }
 
     return(
-        <div className="flex h-screen w-screen">
+        <div className="flex h-screen w-screen bg-blue-100">
             {/* Chats Display */}
             <div className="flex flex-col h-full w-[35%]">
                 {/* Header */}
@@ -89,11 +94,19 @@ const ChatUI=()=>{
 
                    <div className="flex p-2">
                    <p className="text-3xl mr-4 cursor-pointer" onClick={()=>SetNewChatBoxAppear(true)}>+</p>
-                   <div className="flex justify-center items-center h-10 w-10 rounded-full border-2 border-black cursor-pointer" onClick={handleLogOut}>
-                        <p className="text-sm">{"[<-"}</p>
-                   </div>
-                   </div>
+
+                    <div id="dropDown" className="flex relative">
+                    <img src={threeDots} alt="three dots" style={{width:"35px",cursor:"pointer"}} onClick={()=>{setDisplaySettingBox(true)}}/>
+                    {(displaySettingBox&&<div className="flex absolute flex-col z-[10] bg-white h-max w-[150px] top-[35px] right-[10px] shadow-lg">
+                        <div className="flex p-2 cursor-pointer hover:bg-gray-100"><p>Profile</p></div>
+                        <div className="flex p-2 cursor-pointer hover:bg-gray-100" onClick={handleLogOut}><p>Log out</p></div>
+                        <div className="flex p-2 cursor-pointer hover:bg-gray-100" onClick={()=>{setDisplaySettingBox(false)}}><p>Exit</p></div>
+                    </div>)}
+                    
+                    </div>
                    
+                   </div>
+                  
                 </div>
                 {/* Display the chats here */}
                 {newChatBoxAppear?<AddNewChat SetNewChatBoxAppear={SetNewChatBoxAppear} userInfo={userInfo}/>:<div className="flex flex-col h-[90%] w-full bg-slate-300">
@@ -114,7 +127,7 @@ const ChatUI=()=>{
                 
             </div>
             {/* Chatting section */}
-            <div className="flex flex-col h-full w-[65%]">
+            {displayChatUI?(<div className="flex flex-col h-full w-[65%]">
                 {/* Header */}
                 <div className="flex items-center h-[8%] w-full bg-blue-400">
                     <div className="flex h-10 w-10 rounded-full border-2 border-black"></div>
@@ -138,11 +151,12 @@ const ChatUI=()=>{
                         
                    </div>
                    <div className="flex items-center h-[10%] w-full bg-blue-200">
-                        <p className="text-4xl cursor-pointer">+</p> 
+                        <img src={fileUploadIcon} alt="upload" style={{marginLeft:"20px"}}/>
                         <ChatTextBox selectedDocId={selectedDocId} userInfo={userInfo}/>
                    </div>
                 </div>
-            </div>
+            </div>):""}
+            
         </div>
     )
 }
