@@ -3,6 +3,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth,db } from "../../../firebaseConfig/firebase";
 import { useNavigate } from "react-router-dom";
 import { collection,addDoc,getDocs,query,where } from "firebase/firestore";
+import { ref,uploadBytes,getDownloadURL } from "firebase/storage";
 
 const AddNewChat = ({userInfo,SetNewChatBoxAppear}) => {
     const [UserData,setUserData]=useState([]);
