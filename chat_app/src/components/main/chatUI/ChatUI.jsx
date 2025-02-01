@@ -5,14 +5,17 @@ import { onAuthStateChanged, signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { collection,getDocs,onSnapshot,query,where } from "firebase/firestore";
 import AddNewChat from "./AddNewChat";
+import ProfilePage from "./ProfilePage";
 import fileUploadIcon from "./assets/upload_icon.png";
-import threeDots from "./assets/Three_Dots_Icon.png"
+import threeDots from "./assets/Three_Dots_Icon.png";
+import userIcon from "./assets/userIcon.png"
 
 const ChatUI=()=>{
     const navigate=useNavigate();
     const [Uid,setUid]=useState();
     const [userChats,setUserChats]=useState([]);
     const [newChatBoxAppear,SetNewChatBoxAppear]=useState(false);
+    const [displayProfileSection,setDisplayProfileSection]=useState(false);
     const [displayChatUI,setDisplayChatUI]=useState(false);
     const [selectedDocId,setSelectedDocId]=useState();
     const [currentMessages,setCurrentMessages]=useState([]);
@@ -98,7 +101,7 @@ const ChatUI=()=>{
                     <div id="dropDown" className="flex relative">
                     <img src={threeDots} alt="three dots" style={{width:"35px",cursor:"pointer"}} onClick={()=>{setDisplaySettingBox(true)}}/>
                     {(displaySettingBox&&<div className="flex absolute flex-col z-[10] bg-white h-max w-[150px] top-[35px] right-[10px] shadow-lg">
-                        <div className="flex p-2 cursor-pointer hover:bg-gray-100"><p>Profile</p></div>
+                        <div className="flex p-2 cursor-pointer hover:bg-gray-100" onClick={()=>{setDisplayProfileSection(true);setDisplaySettingBox(false)}}><p>Profile</p></div>
                         <div className="flex p-2 cursor-pointer hover:bg-gray-100" onClick={handleLogOut}><p>Log out</p></div>
                         <div className="flex p-2 cursor-pointer hover:bg-gray-100" onClick={()=>{setDisplaySettingBox(false)}}><p>Exit</p></div>
                     </div>)}
@@ -109,11 +112,11 @@ const ChatUI=()=>{
                   
                 </div>
                 {/* Display the chats here */}
-                {newChatBoxAppear?<AddNewChat SetNewChatBoxAppear={SetNewChatBoxAppear} userInfo={userInfo}/>:<div className="flex flex-col h-[90%] w-full bg-slate-300">
+                {newChatBoxAppear?<AddNewChat SetNewChatBoxAppear={SetNewChatBoxAppear} userInfo={userInfo}/>:displayProfileSection?<ProfilePage setDisplayProfileSection={setDisplayProfileSection} Uid={Uid}/>:<div className="flex flex-col h-[90%] w-full bg-slate-300">
                 {/* Chats */}
                 {userChats.map((item,index)=>{
                     return(<div className="flex w-full h-16 border-b items-center p-2 border-gray-700 cursor-pointer hover:bg-slate-400" key={index} onClick={()=>{handleDocSelection(index)}}>
-                        <div className="flex h-14 w-14 rounded-full border-2 border-black"></div>
+                        <div className="flex h-[50px] w-[50px] rounded-full"><img src={userIcon} /></div>
                         <div className="flex flex-col ml-8">
                             <p className="text-xl">{item.data().UserIds[0]===Uid?item.data().user2:item.data().user1}</p>
                             <p className="text-base">Message</p>
@@ -130,7 +133,7 @@ const ChatUI=()=>{
             {displayChatUI?(<div className="flex flex-col h-full w-[65%]">
                 {/* Header */}
                 <div className="flex items-center h-[8%] w-full bg-blue-400">
-                    <div className="flex h-10 w-10 rounded-full border-2 border-black"></div>
+                    <div className="flex h-[48px] w-[48px] rounded-full"><img src={userIcon}/></div>
                     <p className="text-xl ml-8">User Name</p>
                 </div>
                 <div className="flex flex-col w-full h-[92%] border-b p-2 bg-blue-100">
