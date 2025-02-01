@@ -9,6 +9,7 @@ import ProfilePage from "./ProfilePage";
 import fileUploadIcon from "./assets/upload_icon.png";
 import threeDots from "./assets/Three_Dots_Icon.png";
 import userIcon from "./assets/userIcon.png"
+import { smartEscape } from "@cloudinary/url-gen/backwards/utils/smartEscape";
 
 const ChatUI=()=>{
     const navigate=useNavigate();
@@ -16,7 +17,10 @@ const ChatUI=()=>{
     const [userChats,setUserChats]=useState([]);
     const [newChatBoxAppear,SetNewChatBoxAppear]=useState(false);
     const [displayProfileSection,setDisplayProfileSection]=useState(false);
+    const [currentChatImage,setCurrentChatImage]=useState("");
+    const [currentChatName,setCurrentChatName]=useState("");
     const [displayChatUI,setDisplayChatUI]=useState(false);
+    const [allUsers,setAllUsers]=useState([]);
     const [selectedDocId,setSelectedDocId]=useState();
     const [currentMessages,setCurrentMessages]=useState([]);
     const [displaySettingBox,setDisplaySettingBox]=useState(false);
@@ -29,11 +33,20 @@ const ChatUI=()=>{
             if(user){
                 try{
                     const userCollectionRef=collection(db,"Users");
+                    const q2=query(userCollectionRef,where("uid","!=",user.uid));
                     const q=query(userCollectionRef,where("uid","==",user.uid));
                     const snapShot=await getDocs(q);
+                    const snapShot2=await getDocs(q2);
+                    const allUsers=[]
                     if(!snapShot.empty){
                         setUserInfo(snapShot.docs[0].data());
                         setUid(user.uid)
+                    }
+                    if(!snapShot2.empty){
+                        for(const Doc of snapShot2.docs){
+                            allUsers.push(Doc.data());
+                        }
+                    setAllUsers([...allUsers])
                     }
                 }catch(error){
                     console.log(error)
@@ -56,9 +69,17 @@ const ChatUI=()=>{
     const getUserChats=()=>{
             const userChatCollectionRef=collection(db,"userChats");
             const q=query(userChatCollectionRef,where("UserIds","array-contains-any",[Uid]))
-    
+            const chatsWithProfiles=[]
             const unsubscribe=onSnapshot(q,(querySnapshot)=>{
-                setUserChats(querySnapshot.docs);
+                for(const chat of querySnapshot.docs){
+                    const chatUid=chat.data()?.UserIds[0]===Uid?chat.data()?.UserIds[1]:chat.data()?.UserIds[0];
+                    const chatData=allUsers.filter((item)=>item.uid === chatUid);
+                    const chatWithProfile={
+                        ...chat.data(),profileImage:chatData[0].profileImage
+                    }
+                    chatsWithProfiles.push(chatWithProfile);
+                }
+                setUserChats([...chatsWithProfiles]);
             })
         
         return unsubscribe;
@@ -67,11 +88,11 @@ const ChatUI=()=>{
     const handleDocSelection=(index)=>{
         setDisplayChatUI(true);
         const userDoc=userChats[index];
+        //userDoc does not contain docs now. so We have to fetch them from database.
         const docId=userDoc.id;
         setSelectedDocId(docId);
         const chatCollectionRef=collection(db,`userChats/${docId}/chats`);
         const unsubscribe=onSnapshot(chatCollectionRef,(chatSnapshot)=>{
-            console.log("current Message Uid:",(chatSnapshot.docs[0].data()).uid)
             setCurrentMessages(chatSnapshot.docs);
         })
 
@@ -116,9 +137,9 @@ const ChatUI=()=>{
                 {/* Chats */}
                 {userChats.map((item,index)=>{
                     return(<div className="flex w-full h-16 border-b items-center p-2 border-gray-700 cursor-pointer hover:bg-slate-400" key={index} onClick={()=>{handleDocSelection(index)}}>
-                        <div className="flex h-[50px] w-[50px] rounded-full"><img src={userIcon} /></div>
+                        <div className="flex h-[50px] w-[50px] rounded-full overflow-hidden"><img src={item.profileImage?item.profileImage:userIcon} /></div>
                         <div className="flex flex-col ml-8">
-                            <p className="text-xl">{item.data().UserIds[0]===Uid?item.data().user2:item.data().user1}</p>
+                            <p className="text-xl">{item.UserIds[0]===Uid?item.user2:item.user1}</p>
                             <p className="text-base">Message</p>
                         </div>
                         

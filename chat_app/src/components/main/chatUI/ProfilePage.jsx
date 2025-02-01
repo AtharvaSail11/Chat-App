@@ -59,7 +59,7 @@ const ProfilePage=({setDisplayProfileSection,Uid})=>{
                 <div className="flex h-[150px] w-[150px] rounded-full border-2 border-black transition-all overflow-hidden" onMouseEnter={()=>{setEditIcon(true)}} onMouseLeave={()=>{setEditIcon(false)}}><img className="shadow-inner hover:shadow-md transition-shadow duration-300" src={profileImage?profileImage:BigUserIcon} />{editIcon?<label htmlFor="fileInput"><img className="absolute z-10 font-bold text-2xl left-[225px] top-[180px] cursor-pointer" src={EditIcon} /></label>:null}<input type="file" id="fileInput" hidden onChange={handleFileChange}/></div>
             </div>
             <div className="flex justify-center h-max w-full">
-                <div className="flex text-2xl">User Name</div>
+                <div className="flex text-2xl">{userName}</div>
             </div>
         </div>
     )
