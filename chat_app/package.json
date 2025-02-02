@@ -12,6 +12,8 @@
   "dependencies": {
     "@cloudinary/react": "^1.13.1",
     "@cloudinary/url-gen": "^1.21.0",
+    "@emoji-mart/data": "^1.2.1",
+    "@emoji-mart/react": "^1.1.1",
     "@supabase/supabase-js": "^2.48.1",
     "axios": "^1.7.9",
     "cloudinary-react": "^1.8.1",

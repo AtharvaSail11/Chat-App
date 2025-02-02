@@ -181,9 +181,9 @@ const ChatUI=()=>{
                         return(
                         <>
                             {(userMessage.data()).uid===Uid?<div className="flex justify-end h-[60px] w-full mb-5">
-                        <div className="flex h-max w-[40%] rounded-lg bg-blue-400 p-2"><p>{(userMessage.data()).message}</p></div>
+                        <div className="flex h-max text-lg w-[40%] rounded-lg bg-blue-400 p-2"><p>{(userMessage.data()).message}</p></div>
                             </div>:<div className="flex h-[60px] w-full mb-5">
-                                <div className="flex h-max w-[40%] rounded-lg bg-slate-300 p-2"><p>{(userMessage.data()).message}</p></div>
+                                <div className="flex h-max text-lg w-[40%] rounded-lg bg-slate-300 p-2"><p>{(userMessage.data()).message}</p></div>
                             </div>}
                         </>
                         )
