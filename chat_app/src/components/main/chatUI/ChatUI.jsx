@@ -66,6 +66,7 @@ const ChatUI=()=>{
         }
     },[Uid])
 
+
     const getUserChats=()=>{
             const userChatCollectionRef=collection(db,"userChats");
             const q=query(userChatCollectionRef,where("UserIds","array-contains-any",[Uid]))
@@ -76,13 +77,20 @@ const ChatUI=()=>{
                     const chatUid=chat.data()?.UserIds[0]===Uid?chat.data()?.UserIds[1]:chat.data()?.UserIds[0];
                     const chatData=allUsers.filter((item)=>item.uid === chatUid);
                     const chatWithProfile={
-                        ...chat.data(),profileImage:chatData[0].profileImage
+                        ...chat.data(),profileImage:chatData[0].profileImage,docId:chat.id
                     }
                     chatsWithProfiles.push(chatWithProfile);
                 }
-                setUserChats([...chatsWithProfiles]);
+                setUserChats((prevData)=>{
+                    const hashMap=new Map();
+    
+                    prevData.forEach((item)=>hashMap.set(item.docId,item));
+                    chatsWithProfiles.forEach((item)=>hashMap.set(item.docId,item));
+    
+                    return Array.from(hashMap.values());
+                });
             })
-        
+
         return unsubscribe;
     }
 
@@ -148,7 +156,7 @@ const ChatUI=()=>{
                         <div className="flex h-[50px] w-[50px] rounded-full overflow-hidden"><img src={item.profileImage?item.profileImage:userIcon} /></div>
                         <div className="flex flex-col ml-8">
                             <p className="text-xl">{item.UserIds[0]===Uid?item.user2:item.user1}</p>
-                            <p className="text-base">Message</p>
+                            {item.latestMessage.messageBy === Uid?<p className="text-base text-green-700">{item.latestMessage.message}</p>:<p className="text-base">{item.latestMessage.message}</p>}
                         </div>
                         
                     </div>)

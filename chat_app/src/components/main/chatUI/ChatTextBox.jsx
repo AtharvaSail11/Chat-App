@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { db } from "../../../firebaseConfig/firebase";
-import { collection,addDoc,updateDoc } from "firebase/firestore";
+import { collection,addDoc,updateDoc,doc } from "firebase/firestore";
 import sendIcon from "./assets/proicons_send.png";
 import emojiIcon from "./assets/Vector.png"
 
@@ -13,9 +13,12 @@ const ChatTextBox=({selectedDocId,userInfo})=>{
     }
     const sendMessage=async()=>{
         try{
+            const userChatCollectionRef=collection(db,"userChats");
+            const docRef=doc(userChatCollectionRef,selectedDocId)
             const chatCollectionRef=collection(db,`userChats/${selectedDocId}/chats`);
             const messageData={uid:userInfo.uid,name:userInfo.fullName,message:Message,messageCreatedAt:(new Date()).getTime()}
             await addDoc(chatCollectionRef,messageData);
+            await updateDoc(docRef,{latestMessage:{messageBy:userInfo.uid,message:Message}});
         }catch(error){
             console.log(error.message);
         }
