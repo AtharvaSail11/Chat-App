@@ -156,7 +156,7 @@ const ChatUI=()=>{
                         <div className="flex h-[50px] w-[50px] rounded-full overflow-hidden"><img src={item.profileImage?item.profileImage:userIcon} /></div>
                         <div className="flex flex-col ml-8">
                             <p className="text-xl">{item.UserIds[0]===Uid?item.user2:item.user1}</p>
-                            {item.latestMessage.messageBy === Uid?<p className="text-base text-green-700">{item.latestMessage.message}</p>:<p className="text-base">{item.latestMessage.message}</p>}
+                            {item.latestMessage?item.latestMessage.messageBy === Uid?<p className="text-base text-green-700">{item.latestMessage.message}</p>:<p className="text-base">{item.latestMessage.message}</p>:""}
                         </div>
                         
                     </div>)
