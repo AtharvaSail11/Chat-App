@@ -17,10 +17,10 @@ const ChatUI=()=>{
     const [userChats,setUserChats]=useState([]);
     const [newChatBoxAppear,SetNewChatBoxAppear]=useState(false);
     const [displayProfileSection,setDisplayProfileSection]=useState(false);
-    const [currentChatImage,setCurrentChatImage]=useState("");
-    const [currentChatName,setCurrentChatName]=useState("");
+    const [userDocs,setUserDocs]=useState();
     const [displayChatUI,setDisplayChatUI]=useState(false);
     const [allUsers,setAllUsers]=useState([]);
+    const [docIndex,setDocIndex]=useState();
     const [selectedDocId,setSelectedDocId]=useState();
     const [currentMessages,setCurrentMessages]=useState([]);
     const [displaySettingBox,setDisplaySettingBox]=useState(false);
@@ -71,6 +71,7 @@ const ChatUI=()=>{
             const q=query(userChatCollectionRef,where("UserIds","array-contains-any",[Uid]))
             const chatsWithProfiles=[]
             const unsubscribe=onSnapshot(q,(querySnapshot)=>{
+                setUserDocs(querySnapshot.docs);
                 for(const chat of querySnapshot.docs){
                     const chatUid=chat.data()?.UserIds[0]===Uid?chat.data()?.UserIds[1]:chat.data()?.UserIds[0];
                     const chatData=allUsers.filter((item)=>item.uid === chatUid);
@@ -85,18 +86,25 @@ const ChatUI=()=>{
         return unsubscribe;
     }
 
-    const handleDocSelection=(index)=>{
+    const handleDocSelection=async(index)=>{
         setDisplayChatUI(true);
-        const userDoc=userChats[index];
-        //userDoc does not contain docs now. so We have to fetch them from database.
+        const userDoc=userDocs[index];
         const docId=userDoc.id;
+        console.log("The docId is:",docId)
+        setDocIndex(index);
         setSelectedDocId(docId);
-        const chatCollectionRef=collection(db,`userChats/${docId}/chats`);
-        const unsubscribe=onSnapshot(chatCollectionRef,(chatSnapshot)=>{
+        try{
+            const chatCollectionRef=collection(db,`userChats/${docId}/chats`);
+            const unsubscribe=onSnapshot(chatCollectionRef,(chatSnapshot)=>{
             setCurrentMessages(chatSnapshot.docs);
-        })
+            })
+    
+            return unsubscribe;
+        }catch(error){
+            console.log(error)
+        }
+        
 
-        return unsubscribe;
     }
 
     const handleLogOut=async()=>{
@@ -154,8 +162,8 @@ const ChatUI=()=>{
             {displayChatUI?(<div className="flex flex-col h-full w-[65%]">
                 {/* Header */}
                 <div className="flex items-center h-[8%] w-full bg-blue-400">
-                    <div className="flex h-[48px] w-[48px] rounded-full"><img src={userIcon}/></div>
-                    <p className="text-xl ml-8">User Name</p>
+                    <div className="flex h-[48px] w-[48px] rounded-full overflow-hidden"><img src={userChats[docIndex].profileImage?userChats[docIndex]?.profileImage:userIcon}/></div>
+                    <p className="text-xl ml-8">{userChats[docIndex].UserIds[0]===Uid?userChats[docIndex].user2:userChats[docIndex].user1}</p>
                 </div>
                 <div className="flex flex-col w-full h-[92%] border-b p-2 bg-blue-100">
                    
