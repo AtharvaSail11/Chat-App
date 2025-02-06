@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState,useEffect } from "react";
 import { db } from "../../../firebaseConfig/firebase";
 import { collection,addDoc,updateDoc,doc } from "firebase/firestore";
 import sendIcon from "./assets/proicons_send.png";
@@ -9,6 +9,8 @@ import data from "@emoji-mart/data"
 
 const ChatTextBox=({selectedDocId,userInfo})=>{
     const [Message,setMessage]=useState("");
+    const emojiBoxRef=useRef(null);
+    const emojiButtonRef=useRef(null)
     const [displayEmojiPicker,setDisplayEmojiPicker]=useState(false)
     
     const handleMessageChange=(e)=>{
@@ -16,8 +18,21 @@ const ChatTextBox=({selectedDocId,userInfo})=>{
         setMessage(value);
     }
 
+    useEffect(()=>{
+        function handleClickOutside(event){
+            if(emojiBoxRef.current && !emojiBoxRef.current.contains(event.target) && emojiButtonRef.current!==event.target){
+                console.log("currentRef:",event.target);
+                setDisplayEmojiPicker(false);
+            }
+        }
+
+        document.addEventListener("click",handleClickOutside);
+        return ()=>document.removeEventListener("click",handleClickOutside);
+    },[])
+
     const handleEmoji=(emojiData)=>{
-        setMessage((prevData)=>prevData+emojiData.native)
+        setMessage((prevData)=>prevData+emojiData.native);
+        setDisplayEmojiPicker(false);
     }
 
     const sendMessage=async()=>{
@@ -35,11 +50,10 @@ const ChatTextBox=({selectedDocId,userInfo})=>{
     }
     return(
         <div className="flex justify-around items-center h-[90%] w-[80%]">
-            <img className="cursor-pointer" src={emojiIcon} alt="O" onClick={()=>{setDisplayEmojiPicker(true)}}/>
+            <img ref={emojiButtonRef} className="cursor-pointer" src={emojiIcon} alt="O" onClick={()=>{setDisplayEmojiPicker(true)}}/>
             <input type="text" value={Message} className="h-[70%] w-[80%]" onChange={handleMessageChange}/>
             <img style={{height:"30px",width:"30px",cursor:"pointer"}} src={sendIcon} alt=">"  onClick={()=>{sendMessage()}} />
-            {displayEmojiPicker?<div className="absolute h-max w-max z-10 bottom-[65px] right-[530px]">
-            <p className="text-2xl cursor-pointer" onClick={()=>{setDisplayEmojiPicker(false)}}>X</p>
+            {displayEmojiPicker?<div ref={emojiBoxRef} className="absolute h-max w-max z-10 bottom-[65px] right-[530px]">
             <EmojiPicker data={data} onEmojiSelect={(emoji)=>{handleEmoji(emoji)}}/>
             </div>:""}
         </div>
