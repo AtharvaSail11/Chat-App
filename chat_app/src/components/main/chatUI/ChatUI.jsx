@@ -1,21 +1,23 @@
 import ChatTextBox from "./ChatTextBox"
-import { useState,useEffect } from "react";
+import { useState,useEffect,useRef } from "react";
 import { auth,db } from "../../../firebaseConfig/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
-import { collection,getDocs,onSnapshot,query,where } from "firebase/firestore";
+import { collection,getDocs,onSnapshot,query,where,doc,addDoc,updateDoc } from "firebase/firestore";
 import AddNewChat from "./AddNewChat";
 import ProfilePage from "./ProfilePage";
 import fileUploadIcon from "./assets/upload_icon.png";
 import threeDots from "./assets/Three_Dots_Icon.png";
 import userIcon from "./assets/userIcon.png"
 import { smartEscape } from "@cloudinary/url-gen/backwards/utils/smartEscape";
+import axios from "axios";
 
 const ChatUI=()=>{
     const navigate=useNavigate();
     const [Uid,setUid]=useState();
     const [userChats,setUserChats]=useState([]);
     const [newChatBoxAppear,SetNewChatBoxAppear]=useState(false);
+    const [uploadBoxAppear,setUploadBoxAppear]=useState(false);
     const [displayProfileSection,setDisplayProfileSection]=useState(false);
     const [userDocs,setUserDocs]=useState();
     const [displayChatUI,setDisplayChatUI]=useState(false);
@@ -25,6 +27,7 @@ const ChatUI=()=>{
     const [currentMessages,setCurrentMessages]=useState([]);
     const [displaySettingBox,setDisplaySettingBox]=useState(false);
     const [userInfo,setUserInfo]=useState([]);
+    const imgFileRef=useRef();
 
 
 
@@ -64,8 +67,30 @@ const ChatUI=()=>{
         if(Uid){
             getUserChats();
         }
-    },[Uid])
+    },[Uid]);
 
+    const handleImageFileChange=async()=>{
+        const File=imgFileRef.current.files[0];
+        console.log("File selected:",File)
+        const formData=new FormData();
+        formData.append("file",File);
+        formData.append("upload_preset","ml_default");
+        formData.append("folder","userUploads");
+        try{
+            const response=await axios.post(`https://api.cloudinary.com/v1_1/dsto9qze2/image/upload`,formData);
+            const downloadUrl=response.data.secure_url;
+            const userChatCollectionRef=collection(db,"userChats");
+            const docRef=doc(userChatCollectionRef,selectedDocId)
+            const chatCollectionRef=collection(db,`userChats/${selectedDocId}/chats`);
+            const messageData={uid:userInfo.uid,messageType:"image",name:userInfo.fullName,imageLink:downloadUrl,messageCreatedAt:(new Date()).getTime()}
+            await addDoc(chatCollectionRef,messageData);
+            await updateDoc(docRef,{latestMessage:{messageBy:userInfo.uid,message:"Image"}});
+            setUploadBoxAppear(false);
+        }catch(error){
+            console.log(error);
+        }
+        
+    }
 
     const getUserChats=()=>{
             const userChatCollectionRef=collection(db,"userChats");
@@ -111,8 +136,6 @@ const ChatUI=()=>{
         }catch(error){
             console.log(error)
         }
-        
-
     }
 
     const handleLogOut=async()=>{
@@ -178,20 +201,44 @@ const ChatUI=()=>{
                    <div className="flex flex-col h-[90%] w-full overflow-y-scroll">
                     
                     {currentMessages.sort((a,b)=>a.data().messageCreatedAt-b.data().messageCreatedAt).map((userMessage,index)=>{
-                        return(
-                        <>
-                            {(userMessage.data()).uid===Uid?<div className="flex justify-end h-[60px] w-full mb-5">
-                        <div className="flex h-max text-lg w-[40%] rounded-lg bg-blue-400 p-2"><p>{(userMessage.data()).message}</p></div>
-                            </div>:<div className="flex h-[60px] w-full mb-5">
-                                <div className="flex h-max text-lg w-[40%] rounded-lg bg-slate-300 p-2"><p>{(userMessage.data()).message}</p></div>
-                            </div>}
-                        </>
-                        )
+                        if((userMessage.data()).messageType==="text"){
+                            return(
+                                <>
+                                    {(userMessage.data()).uid===Uid?<div className="flex justify-end h-[60px] w-full mb-5">
+                                <div className="flex h-max text-lg w-[40%] rounded-lg bg-blue-400 p-2"><p>{(userMessage.data()).message}</p></div>
+                                    </div>:<div className="flex h-[60px] w-full mb-5">
+                                        <div className="flex h-max text-lg w-[40%] rounded-lg bg-slate-300 p-2"><p>{(userMessage.data()).message}</p></div>
+                                    </div>}
+                                </>
+                                )
+                        }else if((userMessage.data()).messageType==="image"){
+                            return(
+                                <>
+                                {(userMessage.data()).uid===Uid?<div className="flex justify-end h-[300px] w-full mb-5">
+                            <div className="flex justify-center items-center h-max w-max max-h-[full] rounded-lg bg-blue-400 p-2"><img className="h-max w-max" src={userMessage.data().imageLink} alt="" /></div>
+                                </div>:<div className="flex h-[300px] w-full mb-5">
+                                    <div className="flex justify-center items-center h-max w-max rounded-lg bg-slate-300 p-2"><img className="h-max w-max" src={userMessage.data().imageLink} alt="" /></div>
+                                </div>}
+                            </>
+                            )
+                        }
+                       
                     })}
                         
                    </div>
                    <div className="flex items-center h-[10%] w-full bg-blue-200">
-                        <img src={fileUploadIcon} alt="upload" style={{marginLeft:"20px"}}/>
+                    <div className="flex relative">
+                        <img className="cursor-pointer" src={fileUploadIcon} alt="upload" style={{marginLeft:"20px"}} onClick={()=>{setUploadBoxAppear(true)}}/>
+                        {
+                            uploadBoxAppear?(<div className="flex h-[150px] w-[100px] absolute flex-col bg-white bottom-10 left-10">
+                                <div className="flex p-2 hover:bg-gray-200"><label className="cursor-pointer" htmlFor="imgUpload"><p>Image</p></label><input type="file" ref={imgFileRef} name="imgUpload" id="imgUpload" hidden onChange={handleImageFileChange}></input></div>
+                                <div className="flex p-2 cursor-pointer hover:bg-gray-200"><p>Video</p></div>
+                                <div className="flex p-2 cursor-pointer hover:bg-gray-200" onClick={()=>setUploadBoxAppear(false)}><p>Exit</p></div>
+                            </div>):""
+                        }
+                        
+                    </div>
+                        
                         <ChatTextBox selectedDocId={selectedDocId} userInfo={userInfo}/>
                    </div>
                 </div>

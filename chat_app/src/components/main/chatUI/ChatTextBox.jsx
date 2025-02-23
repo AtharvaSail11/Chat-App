@@ -40,7 +40,7 @@ const ChatTextBox=({selectedDocId,userInfo})=>{
             const userChatCollectionRef=collection(db,"userChats");
             const docRef=doc(userChatCollectionRef,selectedDocId)
             const chatCollectionRef=collection(db,`userChats/${selectedDocId}/chats`);
-            const messageData={uid:userInfo.uid,name:userInfo.fullName,message:Message,messageCreatedAt:(new Date()).getTime()}
+            const messageData={uid:userInfo.uid,messageType:"text",name:userInfo.fullName,message:Message,messageCreatedAt:(new Date()).getTime()}
             await addDoc(chatCollectionRef,messageData);
             await updateDoc(docRef,{latestMessage:{messageBy:userInfo.uid,message:Message}});
             setMessage("");
