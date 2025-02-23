@@ -18,6 +18,7 @@ const ChatUI=()=>{
     const [userChats,setUserChats]=useState([]);
     const [newChatBoxAppear,SetNewChatBoxAppear]=useState(false);
     const [uploadBoxAppear,setUploadBoxAppear]=useState(false);
+    const [videoPlayerAppear,setVideoPlayerAppear]=useState(false);
     const [displayProfileSection,setDisplayProfileSection]=useState(false);
     const [userDocs,setUserDocs]=useState();
     const [displayChatUI,setDisplayChatUI]=useState(false);
@@ -28,6 +29,7 @@ const ChatUI=()=>{
     const [displaySettingBox,setDisplaySettingBox]=useState(false);
     const [userInfo,setUserInfo]=useState([]);
     const imgFileRef=useRef();
+    const videoFileRef=useRef();
 
 
 
@@ -75,7 +77,7 @@ const ChatUI=()=>{
         const formData=new FormData();
         formData.append("file",File);
         formData.append("upload_preset","ml_default");
-        formData.append("folder","userUploads");
+        formData.append("folder","userUploads/images");
         try{
             const response=await axios.post(`https://api.cloudinary.com/v1_1/dsto9qze2/image/upload`,formData);
             const downloadUrl=response.data.secure_url;
@@ -85,6 +87,30 @@ const ChatUI=()=>{
             const messageData={uid:userInfo.uid,messageType:"image",name:userInfo.fullName,imageLink:downloadUrl,messageCreatedAt:(new Date()).getTime()}
             await addDoc(chatCollectionRef,messageData);
             await updateDoc(docRef,{latestMessage:{messageBy:userInfo.uid,message:"Image"}});
+            setUploadBoxAppear(false);
+        }catch(error){
+            console.log(error);
+        }
+        
+    }
+
+    const handleVideoFileChange=async()=>{
+        const File=videoFileRef.current.files[0];
+        console.log("File selected:",File)
+        const formData=new FormData();
+        formData.append("file",File);
+        formData.append("upload_preset","ml_default");
+        formData.append("folder","userUploads/videos");
+        try{
+            
+            const response=await axios.post("https://api.cloudinary.com/v1_1/dsto9qze2/video/upload",formData);
+            const downloadUrl=response.data.secure_url;
+            const userChatCollectionRef=collection(db,"userChats");
+            const docRef=doc(userChatCollectionRef,selectedDocId)
+            const chatCollectionRef=collection(db,`userChats/${selectedDocId}/chats`);
+            const messageData={uid:userInfo.uid,messageType:"video",name:userInfo.fullName,videoLink:downloadUrl,messageCreatedAt:(new Date()).getTime()}
+            await addDoc(chatCollectionRef,messageData);
+            await updateDoc(docRef,{latestMessage:{messageBy:userInfo.uid,message:"Video"}});
             setUploadBoxAppear(false);
         }catch(error){
             console.log(error);
@@ -221,6 +247,22 @@ const ChatUI=()=>{
                                 </div>}
                             </>
                             )
+                        }else if((userMessage.data()).messageType==="video"){
+                            return(
+                                <div className="flex relative">
+                                {(userMessage.data()).uid===Uid?<div className="flex justify-end h-[50px] w-full mb-5">
+                            <div className="flex justify-center items-center h-max w-max max-h-[full] rounded-lg cursor-pointer bg-blue-400 p-2" onClick={()=>setVideoPlayerAppear(true)}><p>Video</p></div>
+                                </div>:<div className="flex h-[50px] w-full mb-5">
+                                    <div className="flex justify-center items-center h-max w-max rounded-lg cursor-pointer bg-slate-300 p-2" onClick={()=>setVideoPlayerAppear(true)}><p>Video</p></div>
+                                </div>}
+                                    {
+                                        videoPlayerAppear?(<div className="flex flex-col absolute bottom-[100px] left-[250px] h-max w-[400px]">
+                                            <p className="cursor-pointer" onClick={()=>setVideoPlayerAppear(false)}>X</p>
+                                            <video width="500" controls src={userMessage.data().videoLink} type="video/mp4"></video>
+                                        </div>):""
+                                    }
+                            </div>
+                            )
                         }
                        
                     })}
@@ -232,7 +274,7 @@ const ChatUI=()=>{
                         {
                             uploadBoxAppear?(<div className="flex h-[150px] w-[100px] absolute flex-col bg-white bottom-10 left-10">
                                 <div className="flex p-2 hover:bg-gray-200"><label className="cursor-pointer" htmlFor="imgUpload"><p>Image</p></label><input type="file" ref={imgFileRef} name="imgUpload" id="imgUpload" hidden onChange={handleImageFileChange}></input></div>
-                                <div className="flex p-2 cursor-pointer hover:bg-gray-200"><p>Video</p></div>
+                                <div className="flex p-2 cursor-pointer hover:bg-gray-200"><label className="cursor-pointer" htmlFor="videoUpload"><p>Video</p></label><input type="file" ref={videoFileRef} name="videoUpload" id="videoUpload" hidden onChange={handleVideoFileChange}></input></div>
                                 <div className="flex p-2 cursor-pointer hover:bg-gray-200" onClick={()=>setUploadBoxAppear(false)}><p>Exit</p></div>
                             </div>):""
                         }
